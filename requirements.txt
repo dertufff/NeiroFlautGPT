@@ -3,3 +3,4 @@ g4f
 aiohttp
 python-dotenv
 requests
+flask
