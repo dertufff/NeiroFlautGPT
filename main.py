@@ -1,3 +1,6 @@
+from flask import Flask
+from threading import Thread
+import os
 import g4f
 import asyncio
 from aiogram import Bot, Dispatcher, types
@@ -8,8 +11,27 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
 import re
 import html
-import os
 
+# Веб-сервер для Northflank
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "🤖 Telegram Bot Flaut is running on Northflank! 🚀"
+
+@app.route('/health')
+def health():
+    return {"status": "ok", "bot": "running"}
+
+def run_web_server():
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000)))
+
+# Запускаем веб-сервер в отдельном потоке
+web_thread = Thread(target=run_web_server)
+web_thread.daemon = True
+web_thread.start()
+
+# Основной код бота
 BOT_TOKEN = os.getenv('BOT_TOKEN', "7236643509:AAEhGGP9CPnRcJVTHojegpBiGwk9oREXg_A")
 CHANNEL_ID = "@pro_flauta"
 
@@ -28,6 +50,10 @@ async def check_subscription(user_id: int) -> bool:
         return member.status not in ['left', 'kicked', 'banned']
     except Exception:
         return False
+
+def get_subscription_keyboard():
+    keyboard = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="📢 Подписаться на канал")]], resize_keyboard=True)
+    return keyboard
 
 def get_main_keyboard():
     keyboard = [
@@ -70,7 +96,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
     try:
         if not await check_subscription(message.from_user.id):
             await message.answer(
-                "Для использования бота необходимо подписаться на мой канал @pro_flauta , я надеюсь, что это вас не отпугнет))",
+                "Для использования бота необходимо подписаться на мой канал @pro_flauta, я надеюсь, что это вас не отпугнет))",
                 reply_markup=get_subscription_keyboard()
             )
             return
@@ -89,7 +115,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
 async def show_projects(message: types.Message):
     if not await check_subscription(message.from_user.id):
         await message.answer(
-            "Для использования бота необходимо подписаться на мой канал @pro_flauta , затем ерезапустить бота /start. я надеюсь, что это вас не отпугнет))",
+            "Для использования бота необходимо подписаться на мой канал @pro_flauta!",
             reply_markup=get_subscription_keyboard()
         )
         return
@@ -105,7 +131,7 @@ async def show_projects(message: types.Message):
 async def show_user_agreement(message: types.Message):
     if not await check_subscription(message.from_user.id):
         await message.answer(
-            "Для использования бота необходимо подписаться на мой канал посвещенный Флауту и моим другим проектам, надеюсь, что это вас не отпугнет))",
+            "Для использования бота необходимо подписаться на мой канал посвещенный Флауту @pro_flauta и моим другим проектам, надеюсь, что это вас не отпугнет))",
             reply_markup=get_subscription_keyboard()
         )
         return
@@ -171,7 +197,7 @@ async def handle_message(message: types.Message, state: FSMContext):
             await message.answer(msg, parse_mode="Markdown")
 
 async def main():
-    print("🤖 Бот Flaut запускается на Render...")
+    print("🤖 Бот Flaut запускается на Northflank...")
     try:
         await dp.start_polling(bot)
     except Exception as e:
