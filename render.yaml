@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: flaut-bot
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: BOT_TOKEN
+        value: 7236643509:AAEhGGP9CPnRcJVTHojegpBiGwk9oREXg_A
